@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+
+const async = require('async');
+const debug = require('debug')('slack-protector');
+const slack = require('slack');
+
+const token = process.env.SLACK_TOKEN;
+
+const messages = new Map();
+
+let index = 0;
+let backoff = 1000;
+
+function deleteReminders () {
+  slack.users.list({token}, (err, data) => {
+    if (err) throw err;
+
+    console.log(`checking ${data.members.length} users`);
+
+    async.eachSeries(data.members, (member, cb) => {
+
+      debug(`checking user ${index++} our of ${data.members.length}: ${member.id}`)
+
+      slack.reminders.list({token}, (err, data) => {
+        if (err) return cb(err);
+
+        async.each(data.reminders, (reminder, cb) => {
+
+          if ( ! messages.has(reminder.text)) messages.set(reminder.text, new Set());
+
+          messages.get(reminder.text).add(reminder.creator);
+
+          slack.reminders.delete({token, reminder: reminder.id}, (err) => {
+            if (err) return cb(err);
+
+            console.log(`deleted reminder ${reminder.id} "${reminder.text}" created by ${reminder.creator}, sent to ${U5GG29BST}`);
+
+            cb();
+
+          });
+
+        }, cb);
+      });
+    }, (err) => {
+      if (err) throw err;
+
+      messages.forEach((value, key) => {
+        console.warn(`"${key}" created by ${Array.from(value.values()).join(',')}`)
+      });
+
+    });
+  });
+}
+
+deleteReminders();
+
+setInterval(deleteReminders, 180000);

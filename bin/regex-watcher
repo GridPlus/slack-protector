@@ -1,0 +1,52 @@
+#!/usr/bin/env node
+
+const async = require('async');
+const slack = require('slack');
+const bot = slack.rtm.client();
+const token = process.env.SLACK_BOT_TOKEN;
+
+function warn (user, coin) {
+  return `
+  USER @${user} JUST POSTED A(N) ${coin} ADDRESS. THE GRID+ TEAM WILL NEVER POST ADDRESSES TO SLACK.
+  CHANNEL ADMINS HAVE BEEN NOTIFIED. MALICIOUS BEHAVIOR IN THIS CHANNEL WILL RESULT IN BANNING.
+  GRID+ TAKES THE SECURITY OF ITS USERS VERY SERIOUSLY, AND WILL ACT TO PROTECT THEM.
+  :warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:
+  `;
+}
+
+const map = [
+  {
+    format: (user) => {
+      return warn(user, 'BITCOIN')
+    },
+    regex: new RegExp('^[13][a-km-zA-HJ-NP-Z0-9]{26,33}$', 'i')
+  },
+  {
+  format: (user) => {
+    return warn(user, 'ETHEREUM')
+  },
+    regex: new RegExp('^(0x)?[0-9a-f]{40}$', 'i')
+  }
+];
+
+bot.message((message) => {
+
+  async.forEach(map, (type, cb) => {
+    if (type.regex.test(message.text)) {
+      const {channel, user} = message;
+      slack.users.info({token, user}, (err, user) => {
+        if (err) return cb(err);
+        const text = type.format(user.user.name);
+        console.log(`sending warning to channel: ${channel}:\n`);
+        console.log(text);
+        slack.chat.postMessage({token, channel, text}, (err) => {
+          if (err) console.error(err);
+          cb();
+        });
+      });
+    } else cb();
+  });
+
+});
+
+bot.listen({token});
