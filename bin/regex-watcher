@@ -7,7 +7,7 @@ const token = process.env.SLACK_BOT_TOKEN;
 
 function warn (user, coin) {
   return `
-  USER @${user} JUST POSTED A(N) ${coin} ADDRESS. THE GRID+ TEAM WILL NEVER POST ADDRESSES TO SLACK.
+  USER @${user} JUST POSTED ${coin} ADDRESS. THE GRID+ TEAM WILL NEVER POST ADDRESSES TO SLACK.
   CHANNEL ADMINS HAVE BEEN NOTIFIED. MALICIOUS BEHAVIOR IN THIS CHANNEL WILL RESULT IN BANNING.
   GRID+ TAKES THE SECURITY OF ITS USERS VERY SERIOUSLY, AND WILL ACT TO PROTECT THEM.
   :warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:
@@ -17,13 +17,13 @@ function warn (user, coin) {
 const map = [
   {
     format: (user) => {
-      return warn(user, 'BITCOIN')
+      return warn(user, 'A BITCOIN')
     },
     regex: new RegExp('^[13][a-km-zA-HJ-NP-Z0-9]{26,33}$', 'i')
   },
   {
   format: (user) => {
-    return warn(user, 'ETHEREUM')
+    return warn(user, 'AN ETHEREUM')
   },
     regex: new RegExp('^(0x)?[0-9a-f]{40}$', 'i')
   }

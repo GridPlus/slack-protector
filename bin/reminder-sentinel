@@ -33,7 +33,7 @@ function deleteReminders () {
           slack.reminders.delete({token, reminder: reminder.id}, (err) => {
             if (err) return cb(err);
 
-            console.log(`deleted reminder ${reminder.id} "${reminder.text}" created by ${reminder.creator}, sent to ${U5GG29BST}`);
+            console.log(`deleted reminder ${reminder.id} "${reminder.text}" created by ${reminder.creator}, sent to ${user.name}`);
 
             cb();
 
