@@ -17,34 +17,37 @@ function warn (user, coin) {
 const map = [
   {
     format: (user) => {
+      return warn(user, 'AN ETHEREUM')
+    },
+    regex: new RegExp('(0x)?[a-km-zA-HJ-NP-Z0-9]{40}', 'i')
+  }, {
+    format: (user) => {
       return warn(user, 'A BITCOIN')
     },
-    regex: new RegExp('[13][a-km-zA-HJ-NP-Z0-9]{26,33}$', 'i')
-  },
-  {
-  format: (user) => {
-    return warn(user, 'AN ETHEREUM')
-  },
-    regex: new RegExp('(0x)?[0-9a-f]{40}$', 'i')
+    regex: new RegExp('[13][a-km-zA-HJ-NP-Z0-9]{26,33}', 'i')
   }
 ];
 
-bot.message((message) => {
+const pairs = [map[0], map[1]];
 
-  async.forEach(map, (type, cb) => {
-    if (type.regex.test(message.text)) {
-      const {channel, user} = message;
-      slack.users.info({token, user}, (err, user) => {
-        if (err) return cb(err);
-        const text = type.format(user.user.name);
-        console.log(`sending warning to channel: ${channel}:\n`);
-        console.log(text);
-        slack.chat.postMessage({token, channel, text}, (err) => {
-          if (err) console.error(err);
-          cb();
-        });
-      });
-    } else cb();
+bot.message((message) => {
+  let index = 0;
+
+  if ( ! pairs.some((pair) => {
+    return pair.regex.test(message.text);
+  })) return;
+
+  const firstMatch = pairs.find((pair) => pair.regex.test(message.text));
+
+  const {channel, user} = message;
+  slack.users.info({token, user}, (err, user) => {
+    if (err) throw err;
+    const text = firstMatch.format(user.user.name);
+    console.log(`sending warning to channel/conversation ${channel} for user ${user.user.name} and matched address ${message.text.match(firstMatch.regex)}:`);
+    console.log(text);
+    slack.chat.postMessage({token, channel, text}, (err) => {
+      if (err) console.error(err);
+    });
   });
 
 });
