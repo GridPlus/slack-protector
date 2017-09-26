@@ -24,7 +24,7 @@ const map = [
     format: (user) => {
       return warn(user, 'A BITCOIN')
     },
-    regex: new RegExp('[13][a-km-zA-HJ-NP-Z0-9]{26,33}', 'i')
+    regex: new RegExp('[13][a-km-zA-HJ-NP-Z1-9]{25,34}', 'i')
   }
 ];
 
