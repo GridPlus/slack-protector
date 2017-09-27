@@ -19,7 +19,7 @@ const map = [
     format: (user) => {
       return warn(user, 'A NAMED ETHEREUM')
     },
-    regex: /\s?\S+\.eth/i
+    regex: /\s?\S+\.eth($|\s|[\.:;?|=\-\+"'`~@#$%^&*\(\),!"'\/\$])/i
   },
   {
     format: (user) => {
