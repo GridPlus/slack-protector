@@ -14,7 +14,7 @@ function warn (user, coin) {
   `;
 }
 
-const map = [
+const pairs = [
   {
     format: (user) => {
       return warn(user, 'A NAMED ETHEREUM')
@@ -34,27 +34,29 @@ const map = [
   }
 ];
 
-const pairs = [map[0], map[1], map[2]];
-
 bot.message((message) => {
   let index = 0;
 
-  if ( ! message.user) return; // message is from our bot. ignore
+  if ( ! message.user && ! message.subtype === 'message_changed') return; // message is from our bot. ignore
+
+  const messageText = message.text || message.message.text; // updated messages have a message child property containing the change https://api.slack.com/events/message/message_changed
 
   if ( ! pairs.some((pair) => {
-    return pair.regex.test(message.text);
+    return pair.regex.test(messageText);
   })) return; // no matches. bail
 
-  const firstMatch = pairs.find((pair) => pair.regex.test(message.text));
+  const firstMatch = pairs.find((pair) => pair.regex.test(messageText));
 
-  const {channel, user} = message;
+  let {channel, user} = message;
+
+  if ( ! user) user = message.message.user; // message_updated type has nested changed message with user
 
   slack.users.info({token, user}, (err, user) => {
     if (err) throw err;
 
     const text = firstMatch.format(user.user.name);
 
-    console.log(`sending warning to channel/conversation ${channel} for user ${user.user.name} and matched address ${message.text.match(firstMatch.regex)}:`);
+    console.log(`sending warning to channel/conversation ${channel} for user ${user.user.name} and matched address ${messageText.match(firstMatch.regex)}:`);
     console.log(text);
 
     slack.chat.postMessage({token, channel, text}, (err) => {
