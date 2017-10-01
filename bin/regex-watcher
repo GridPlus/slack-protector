@@ -5,9 +5,10 @@ const slack = require('slack');
 const bot = slack.rtm.client();
 const token = process.env.SLACK_BOT_TOKEN;
 
-function warn (user, coin) {
+function warn (user, item) {
   return `
-  USER @${user} JUST POSTED ${coin} ADDRESS. THE GRID+ TEAM WILL NEVER POST ADDRESSES TO SLACK.
+  USER @${user} JUST POSTED ${item} ADDRESS. THE GRID+ TEAM WILL NEVER POST ADDRESSES TO SLACK.
+  WE WILL NEVER POST LINKS TO MYETHERWALLET OR ANY OTHER SITE TO REQUEST PAYMENT VIA SLACK.
   CHANNEL ADMINS HAVE BEEN NOTIFIED. MALICIOUS BEHAVIOR IN THIS CHANNEL WILL RESULT IN BANNING.
   GRID+ TAKES THE SECURITY OF ITS USERS VERY SERIOUSLY, AND WILL ACT TO PROTECT THEM.
   :warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:\t\t\t:warning:
@@ -17,29 +18,39 @@ function warn (user, coin) {
 const pairs = [
   {
     format: (user) => {
-      return warn(user, 'A NAMED ETHEREUM')
+      return warn(user, 'A NAMED ETHEREUM ADDRESS');
     },
     regex: /\s?\S+\.eth($|\s|[\.:;?|=\-\+"'`~@#$%^&*\(\),!"'\/\$])/i
   },
   {
     format: (user) => {
-      return warn(user, 'AN ETHEREUM')
+      return warn(user, 'AN ETHEREUM ADDRESS');
     },
     regex: /(0x)?[a-km-zA-HJ-NP-Z0-9]{40}/i
   }, {
     format: (user) => {
-      return warn(user, 'A BITCOIN')
+      return warn(user, 'A BITCOIN ADDRESS');
     },
     regex: /[13][a-km-zA-HJ-NP-Z1-9]{25,34}/i
+  },
+  {
+    format: (user) => {
+      return warn(user, 'A MyEtherWallet LINK');
+    },
+    regex: /MyEtherWallet/i
   }
 ];
 
 bot.message((message) => {
   let index = 0;
 
+  if (message.subtype === 'bot_message') return;
+
   if ( ! message.user && ! message.subtype === 'message_changed') return; // message is from our bot. ignore
 
-  const messageText = message.text || message.message.text; // updated messages have a message child property containing the change https://api.slack.com/events/message/message_changed
+  const messageText = message.text ? message.text : message.message ? message.message.text : null; // updated messages have a message child property containing the change https://api.slack.com/events/message/message_changed
+
+  if ( ! messageText) return;
 
   if ( ! pairs.some((pair) => {
     return pair.regex.test(messageText);
