@@ -25,13 +25,18 @@ function deleteReminders (index = 0) {
       });
 
     }, (err) => {
-      if (err) throw err;
+      if (err) {
+        if (/POST failed with: 429/.test(err.message)) {
+          return setTimeout(deleteReminders, 15000);
+        }
+        throw err;
+      }
       console.log(`completed deleting reminders at ${new Date()}`);
+      setTimeout(deleteReminders, 500);
     });
 
   });
 
 }
 
-
-setInterval(deleteReminders, 500);
+deleteReminders();

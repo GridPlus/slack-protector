@@ -42,6 +42,7 @@ const pairs = [
 ];
 
 bot.message((message) => {
+
   let index = 0;
 
   if (message.subtype === 'bot_message') return;
