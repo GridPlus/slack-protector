@@ -11,7 +11,12 @@ function deleteReminders (index = 0) {
   debug(`deleting reminders`)
 
   slack.reminders.list({token}, (err, data) => {
-    if (err) throw err;
+    if (err) {
+      if (/POST failed with: 429/.test(err.message)) {
+        return setTimeout(deleteReminders, 15000);
+      }
+      throw err;
+    }
 
     async.each(data.reminders, (reminder, cb) => {
 
