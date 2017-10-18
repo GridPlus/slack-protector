@@ -37,7 +37,7 @@ function deleteReminders (index = 0) {
         throw err;
       }
       console.log(`completed deleting reminders at ${new Date()}`);
-      setTimeout(deleteReminders, 500);
+      setTimeout(deleteReminders, 999);
     });
 
   });
